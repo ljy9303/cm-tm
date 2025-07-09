@@ -26,3 +26,7 @@ node_modules/
 lastwar-api/
 lastwar-www/
 
+
+# Task files
+# tasks.json
+# tasks/ 
