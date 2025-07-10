@@ -234,6 +234,158 @@ Task Master 규칙을 Claude Code에 통합하여 자동으로 적용되는 개�
 - 한글 커밋 메시지와 PR 템플릿 사용
 - 각 프로젝트에서 개별적으로 Git 관리
 
+## GitHub MCP 통합 워크플로우
+
+### GitHub 저장소 관리
+GitHub MCP를 통해 원격 저장소와 통합된 개발 워크플로우를 제공합니다.
+
+#### 주요 GitHub 저장소
+- **ljy9303/lastwar-www**: 프론트엔드 프로젝트 (읽기/쓰기 권한)
+- **ljy9303/lastwar-api**: 백엔드 프로젝트 (향후 연동 예정)
+- **ljy9303/cm-tm**: 공통 Task Master 설정
+
+#### GitHub MCP 주요 기능
+
+##### 1. 저장소 조회 및 탐색
+```bash
+# 본인 저장소 목록 조회
+mcp__github__search_repositories: user:ljy9303
+
+# 특정 파일 내용 조회
+mcp__github__get_file_contents: owner/repo/path
+
+# 커밋 히스토리 조회
+mcp__github__list_commits: owner/repo
+```
+
+##### 2. 파일 관리
+```bash
+# 파일 생성/수정
+mcp__github__create_or_update_file: 
+  - path: 파일 경로
+  - content: 파일 내용
+  - message: 커밋 메시지
+  - branch: 대상 브랜치
+
+# 여러 파일 한번에 푸시
+mcp__github__push_files:
+  - files: [파일 배열]
+  - message: 커밋 메시지
+```
+
+##### 3. 브랜치 및 PR 관리
+```bash
+# 새 브랜치 생성
+mcp__github__create_branch:
+  - branch: 브랜치명
+  - from_branch: 기준 브랜치
+
+# Pull Request 생성
+mcp__github__create_pull_request:
+  - title: PR 제목
+  - body: PR 설명
+  - head: 소스 브랜치
+  - base: 타겟 브랜치
+```
+
+##### 4. 이슈 관리
+```bash
+# 이슈 생성
+mcp__github__create_issue:
+  - title: 이슈 제목
+  - body: 이슈 내용
+  - labels: 라벨 배열
+
+# 이슈 목록 조회
+mcp__github__list_issues:
+  - state: open/closed/all
+  - labels: 필터링할 라벨
+```
+
+### GitHub MCP 활용 시나리오
+
+#### 1. 로컬-리모트 동기화 워크플로우
+```bash
+# 1. 로컬에서 개발 완료
+cd /lastwar/lastwar-www
+git add .
+git commit -m "기능 구현 완료"
+
+# 2. GitHub MCP로 리모트 확인
+mcp__github__get_file_contents: 최신 파일 상태 확인
+
+# 3. 충돌 없으면 푸시
+git push origin feature/새기능
+
+# 4. GitHub MCP로 PR 생성
+mcp__github__create_pull_request: 자동 PR 생성
+```
+
+#### 2. 코드 리뷰 및 배포 워크플로우
+```bash
+# 1. PR 상태 확인
+mcp__github__get_pull_request: PR 상세 정보
+
+# 2. 변경사항 검토
+mcp__github__get_pull_request_files: 변경된 파일 목록
+
+# 3. 리뷰 추가
+mcp__github__create_pull_request_review: 
+  - event: APPROVE/REQUEST_CHANGES/COMMENT
+  - body: 리뷰 내용
+
+# 4. 머지 실행
+mcp__github__merge_pull_request: 
+  - merge_method: merge/squash/rebase
+```
+
+#### 3. 이슈 트래킹 워크플로우
+```bash
+# 1. 버그 발견 시 이슈 생성
+mcp__github__create_issue:
+  - title: "버그: 사용자 로그인 실패"
+  - body: 상세 버그 리포트
+  - labels: ["bug", "high-priority"]
+
+# 2. 개발 중 이슈 업데이트
+mcp__github__add_issue_comment:
+  - body: 진행 상황 업데이트
+
+# 3. 해결 완료 시 이슈 종료
+mcp__github__update_issue:
+  - state: closed
+```
+
+### GitHub MCP 모범 사례
+
+#### 1. 프론트엔드 개발 (lastwar-www)
+- **로컬 우선 개발**: 로컬에서 기능 구현 후 MCP로 동기화
+- **자동 PR 생성**: 기능 완료 시 MCP로 즉시 PR 생성
+- **코드 리뷰 강화**: MCP를 통한 체계적 리뷰 프로세스
+
+#### 2. 백엔드 개발 (lastwar-api)
+- **API 문서 동기화**: Swagger 문서를 GitHub에 자동 커밋
+- **테스트 결과 공유**: 테스트 리포트를 이슈로 자동 생성
+- **배포 히스토리 관리**: 배포 태그 및 릴리즈 노트 자동화
+
+#### 3. 프로젝트 관리
+- **태스크-이슈 연동**: Task Master 태스크를 GitHub 이슈로 변환
+- **마일스톤 관리**: 주요 기능별 마일스톤 설정 및 추적
+- **자동화된 워크플로우**: GitHub Actions와 연동 고려
+
+### GitHub MCP 보안 고려사항
+- **권한 최소화**: 필요한 권한만 부여
+- **토큰 관리**: GitHub Personal Access Token 안전한 보관
+- **브랜치 보호**: main 브랜치에 대한 직접 푸시 방지
+- **리뷰 필수화**: 중요 변경사항은 반드시 코드 리뷰 거치기
+
+### GitHub MCP 설정 확인
+현재 MCP 설정 상태:
+- ✅ ljy9303/lastwar-www: 읽기/쓰기 권한 확인됨
+- ✅ ljy9303/cm-tm: 공통 설정 저장소 접근 가능
+- ✅ 파일 생성/수정/삭제 테스트 완료
+- ✅ 커밋 및 푸시 기능 정상 작동
+
 ---
 
 _이 가이드는 Claude Code가 LastWar 프로젝트의 개발 워크플로우를 자동으로 적용하기 위한 통합 규칙입니다._
