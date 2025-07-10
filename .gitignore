@@ -15,6 +15,10 @@ node_modules/
 # Editor directories and files
 .idea
 .vscode
+.cursor/
+.roo/
+.windsurf/
+.trae/
 *.suo
 *.ntvs*
 *.njsproj
@@ -23,6 +27,31 @@ node_modules/
 
 # OS specific
 .DS_Store
+
+# Claude Code usage tracking
+uploads/
+usage_tracking*.json
+
+# Java build artifacts
+build/
+target/
+*.class
+
+# Next.js build artifacts
+.next/
+out/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Gradle cache
+.gradle/
+
+# Test and development files
+*test-report*.md
+*.pyc
+
+# Project directories
 lastwar-api/
 lastwar-www/
 
