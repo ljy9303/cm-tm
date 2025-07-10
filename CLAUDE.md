@@ -1,417 +1,239 @@
-# Task Master AI - Claude Code Integration Guide
+# LastWar 프로젝트 개발 워크플로우 규칙
 
-## Essential Commands
+Task Master 규칙을 Claude Code에 통합하여 자동으로 적용되는 개발 가이드라인입니다.
 
-### Core Workflow Commands
+## 프로젝트 구조 및 작업 방식
 
-```bash
-# Project Setup
-task-master init                                    # Initialize Task Master in current project
-task-master parse-prd .taskmaster/docs/prd.txt      # Generate tasks from PRD document
-task-master models --setup                        # Configure AI models interactively
-
-# Daily Development Workflow
-task-master list                                   # Show all tasks with status
-task-master next                                   # Get next available task to work on
-task-master show <id>                             # View detailed task information (e.g., task-master show 1.2)
-task-master set-status --id=<id> --status=done    # Mark task complete
-
-# Task Management
-task-master add-task --prompt="description" --research        # Add new task with AI assistance
-task-master expand --id=<id> --research --force              # Break task into subtasks
-task-master update-task --id=<id> --prompt="changes"         # Update specific task
-task-master update --from=<id> --prompt="changes"            # Update multiple tasks from ID onwards
-task-master update-subtask --id=<id> --prompt="notes"        # Add implementation notes to subtask
-
-# Analysis & Planning
-task-master analyze-complexity --research          # Analyze task complexity
-task-master complexity-report                      # View complexity analysis
-task-master expand --all --research               # Expand all eligible tasks
-
-# Dependencies & Organization
-task-master add-dependency --id=<id> --depends-on=<id>       # Add task dependency
-task-master move --from=<id> --to=<id>                       # Reorganize task hierarchy
-task-master validate-dependencies                            # Check for dependency issues
-task-master generate                                         # Update task markdown files (usually auto-called)
+### 디렉토리 구조
+```
+/lastwar/                        # 프로젝트 루트 (Claude 실행 위치)
+├── CLAUDE.md                   # 이 파일 - 통합 개발 규칙
+├── .taskmaster/                # Task Master 설정
+├── lastwar-api/                # 백엔드 프로젝트 (Spring Boot)
+└── lastwar-www/                # 프론트엔드 프로젝트 (Next.js)
 ```
 
-## Key Files & Project Structure
-
-### Core Files
-
-- `.taskmaster/tasks/tasks.json` - Main task data file (auto-managed)
-- `.taskmaster/config.json` - AI model configuration (use `task-master models` to modify)
-- `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
-- `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
-- `.env` - API keys for CLI usage
-
-### Claude Code Integration Files
-
-- `CLAUDE.md` - Auto-loaded context for Claude Code (this file)
-- `.claude/settings.json` - Claude Code tool allowlist and preferences
-- `.claude/commands/` - Custom slash commands for repeated workflows
-- `.mcp.json` - MCP server configuration (project-specific)
-
-### Directory Structure
-
-```
-project/
-├── .taskmaster/
-│   ├── tasks/              # Task files directory
-│   │   ├── tasks.json      # Main task database
-│   │   ├── task-1.md      # Individual task files
-│   │   └── task-2.md
-│   ├── docs/              # Documentation directory
-│   │   ├── prd.txt        # Product requirements
-│   ├── reports/           # Analysis reports directory
-│   │   └── task-complexity-report.json
-│   ├── templates/         # Template files
-│   │   └── example_prd.txt  # Example PRD template
-│   └── config.json        # AI models & settings
-├── .claude/
-│   ├── settings.json      # Claude Code configuration
-│   └── commands/         # Custom slash commands
-├── .env                  # API keys
-├── .mcp.json            # MCP configuration
-└── CLAUDE.md            # This file - auto-loaded by Claude Code
-```
-
-## MCP Integration
-
-Task Master provides an MCP server that Claude Code can connect to. Configure in `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "task-master-ai": {
-      "command": "npx",
-      "args": ["-y", "--package=task-master-ai", "task-master-ai"],
-      "env": {
-        "ANTHROPIC_API_KEY": "your_key_here",
-        "PERPLEXITY_API_KEY": "your_key_here",
-        "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
-        "GOOGLE_API_KEY": "GOOGLE_API_KEY_HERE",
-        "XAI_API_KEY": "XAI_API_KEY_HERE",
-        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
-        "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
-        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
-        "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
-      }
-    }
-  }
-}
-```
-
-### Essential MCP Tools
-
-```javascript
-help; // = shows available taskmaster commands
-// Project setup
-initialize_project; // = task-master init
-parse_prd; // = task-master parse-prd
-
-// Daily workflow
-get_tasks; // = task-master list
-next_task; // = task-master next
-get_task; // = task-master show <id>
-set_task_status; // = task-master set-status
-
-// Task management
-add_task; // = task-master add-task
-expand_task; // = task-master expand
-update_task; // = task-master update-task
-update_subtask; // = task-master update-subtask
-update; // = task-master update
-
-// Analysis
-analyze_project_complexity; // = task-master analyze-complexity
-complexity_report; // = task-master complexity-report
-```
-
-## Claude Code Workflow Integration
-
-### Standard Development Workflow
-
-#### 1. Project Initialization
-
-```bash
-# Initialize Task Master
-task-master init
-
-# Create or obtain PRD, then parse it
-task-master parse-prd .taskmaster/docs/prd.txt
-
-# Analyze complexity and expand tasks
-task-master analyze-complexity --research
-task-master expand --all --research
-```
-
-If tasks already exist, another PRD can be parsed (with new information only!) using parse-prd with --append flag. This will add the generated tasks to the existing list of tasks..
-
-#### 2. Daily Development Loop
-
-```bash
-# Start each session
-task-master next                           # Find next available task
-task-master show <id>                     # Review task details
-
-# During implementation, check in code context into the tasks and subtasks
-task-master update-subtask --id=<id> --prompt="implementation notes..."
-
-# Complete tasks
-task-master set-status --id=<id> --status=done
-```
-
-#### 3. Multi-Claude Workflows
-
-For complex projects, use multiple Claude Code sessions:
-
-```bash
-# Terminal 1: Main implementation
-cd project && claude
-
-# Terminal 2: Testing and validation
-cd project-test-worktree && claude
-
-# Terminal 3: Documentation updates
-cd project-docs-worktree && claude
-```
-
-### Custom Slash Commands
-
-Create `.claude/commands/taskmaster-next.md`:
-
-```markdown
-Find the next available Task Master task and show its details.
-
-Steps:
-
-1. Run `task-master next` to get the next task
-2. If a task is available, run `task-master show <id>` for full details
-3. Provide a summary of what needs to be implemented
-4. Suggest the first implementation step
-```
-
-Create `.claude/commands/taskmaster-complete.md`:
-
-```markdown
-Complete a Task Master task: $ARGUMENTS
-
-Steps:
-
-1. Review the current task with `task-master show $ARGUMENTS`
-2. Verify all implementation is complete
-3. Run any tests related to this task
-4. Mark as complete: `task-master set-status --id=$ARGUMENTS --status=done`
-5. Show the next available task with `task-master next`
-```
-
-## Tool Allowlist Recommendations
-
-Add to `.claude/settings.json`:
-
-```json
-{
-  "allowedTools": [
-    "Edit",
-    "Bash(task-master *)",
-    "Bash(git commit:*)",
-    "Bash(git add:*)",
-    "Bash(npm run *)",
-    "mcp__task_master_ai__*"
-  ]
-}
-```
-
-## Configuration & Setup
-
-### API Keys Required
-
-At least **one** of these API keys must be configured:
-
-- `ANTHROPIC_API_KEY` (Claude models) - **Recommended**
-- `PERPLEXITY_API_KEY` (Research features) - **Highly recommended**
-- `OPENAI_API_KEY` (GPT models)
-- `GOOGLE_API_KEY` (Gemini models)
-- `MISTRAL_API_KEY` (Mistral models)
-- `OPENROUTER_API_KEY` (Multiple models)
-- `XAI_API_KEY` (Grok models)
-
-An API key is required for any provider used across any of the 3 roles defined in the `models` command.
-
-### Model Configuration
-
-```bash
-# Interactive setup (recommended)
-task-master models --setup
-
-# Set specific models
-task-master models --set-main claude-3-5-sonnet-20241022
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
-task-master models --set-fallback gpt-4o-mini
-```
-
-## Task Structure & IDs
-
-### Task ID Format
-
-- Main tasks: `1`, `2`, `3`, etc.
-- Subtasks: `1.1`, `1.2`, `2.1`, etc.
-- Sub-subtasks: `1.1.1`, `1.1.2`, etc.
-
-### Task Status Values
-
-- `pending` - Ready to work on
-- `in-progress` - Currently being worked on
-- `done` - Completed and verified
-- `deferred` - Postponed
-- `cancelled` - No longer needed
-- `blocked` - Waiting on external factors
-
-### Task Fields
-
-```json
-{
-  "id": "1.2",
-  "title": "Implement user authentication",
-  "description": "Set up JWT-based auth system",
-  "status": "pending",
-  "priority": "high",
-  "dependencies": ["1.1"],
-  "details": "Use bcrypt for hashing, JWT for tokens...",
-  "testStrategy": "Unit tests for auth functions, integration tests for login flow",
-  "subtasks": []
-}
-```
-
-## Claude Code Best Practices with Task Master
-
-### Context Management
-
-- Use `/clear` between different tasks to maintain focus
-- This CLAUDE.md file is automatically loaded for context
-- Use `task-master show <id>` to pull specific task context when needed
-
-### Iterative Implementation
-
-1. `task-master show <subtask-id>` - Understand requirements
-2. Explore codebase and plan implementation
-3. `task-master update-subtask --id=<id> --prompt="detailed plan"` - Log plan
-4. `task-master set-status --id=<id> --status=in-progress` - Start work
-5. Implement code following logged plan
-6. `task-master update-subtask --id=<id> --prompt="what worked/didn't work"` - Log progress
-7. `task-master set-status --id=<id> --status=done` - Complete task
-
-### Complex Workflows with Checklists
-
-For large migrations or multi-step processes:
-
-1. Create a markdown PRD file describing the new changes: `touch task-migration-checklist.md` (prds can be .txt or .md)
-2. Use Taskmaster to parse the new prd with `task-master parse-prd --append` (also available in MCP)
-3. Use Taskmaster to expand the newly generated tasks into subtasks. Consdier using `analyze-complexity` with the correct --to and --from IDs (the new ids) to identify the ideal subtask amounts for each task. Then expand them.
-4. Work through items systematically, checking them off as completed
-5. Use `task-master update-subtask` to log progress on each task/subtask and/or updating/researching them before/during implementation if getting stuck
-
-### Git Integration
-
-Task Master works well with `gh` CLI:
-
-```bash
-# Create PR for completed task
-gh pr create --title "Complete task 1.2: User authentication" --body "Implements JWT auth system as specified in task 1.2"
-
-# Reference task in commits
-git commit -m "feat: implement JWT auth (task 1.2)"
-```
-
-### Parallel Development with Git Worktrees
-
-```bash
-# Create worktrees for parallel task development
-git worktree add ../project-auth feature/auth-system
-git worktree add ../project-api feature/api-refactor
-
-# Run Claude Code in each worktree
-cd ../project-auth && claude    # Terminal 1: Auth work
-cd ../project-api && claude     # Terminal 2: API work
-```
-
-## Troubleshooting
-
-### AI Commands Failing
-
-```bash
-# Check API keys are configured
-cat .env                           # For CLI usage
-
-# Verify model configuration
-task-master models
-
-# Test with different model
-task-master models --set-fallback gpt-4o-mini
-```
-
-### MCP Connection Issues
-
-- Check `.mcp.json` configuration
-- Verify Node.js installation
-- Use `--mcp-debug` flag when starting Claude Code
-- Use CLI as fallback if MCP unavailable
-
-### Task File Sync Issues
-
-```bash
-# Regenerate task files from tasks.json
-task-master generate
-
-# Fix dependency issues
-task-master fix-dependencies
-```
-
-DO NOT RE-INITIALIZE. That will not do anything beyond re-adding the same Taskmaster core files.
-
-## Important Notes
-
-### AI-Powered Operations
-
-These commands make AI calls and may take up to a minute:
-
-- `parse_prd` / `task-master parse-prd`
-- `analyze_project_complexity` / `task-master analyze-complexity`
-- `expand_task` / `task-master expand`
-- `expand_all` / `task-master expand --all`
-- `add_task` / `task-master add-task`
-- `update` / `task-master update`
-- `update_task` / `task-master update-task`
-- `update_subtask` / `task-master update-subtask`
-
-### File Management
-
-- Never manually edit `tasks.json` - use commands instead
-- Never manually edit `.taskmaster/config.json` - use `task-master models`
-- Task markdown files in `tasks/` are auto-generated
-- Run `task-master generate` after manual changes to tasks.json
-
-### Claude Code Session Management
-
-- Use `/clear` frequently to maintain focused context
-- Create custom slash commands for repeated Task Master workflows
-- Configure tool allowlist to streamline permissions
-- Use headless mode for automation: `claude -p "task-master next"`
-
-### Multi-Task Updates
-
-- Use `update --from=<id>` to update multiple future tasks
-- Use `update-task --id=<id>` for single task updates
-- Use `update-subtask --id=<id>` for implementation logging
-
-### Research Mode
-
-- Add `--research` flag for research-based AI enhancement
-- Requires a research model API key like Perplexity (`PERPLEXITY_API_KEY`) in environment
-- Provides more informed task creation and updates
-- Recommended for complex technical tasks
+### 작업 위치 규칙
+- **루트 레벨 (`/lastwar/`)**: 
+  - Claude Code 실행 위치
+  - Task Master 관련 작업
+  - Claude 설정 및 워크플로우 관리
+  - **Git 관리 안함** (taskmaster, claude 관련 파일 제외)
+  
+- **백엔드 작업 (`/lastwar-api/`)**:
+  - 모든 Spring Boot 관련 개발
+  - Java/Kotlin 코드 작성
+  - 데이터베이스 마이그레이션
+  - **Git 관리**: 백엔드 코드 변경사항
+
+- **프론트엔드 작업 (`/lastwar-www/`)**:
+  - 모든 Next.js 관련 개발  
+  - TypeScript/React 코드 작성
+  - UI/UX 구현
+  - **Git 관리**: 프론트엔드 코드 변경사항
+
+### 작업 플로우
+1. **계획 단계**: `/lastwar/`에서 Task Master로 작업 계획
+2. **백엔드 구현**: `/lastwar-api/`로 이동하여 개발 및 커밋
+3. **프론트엔드 구현**: `/lastwar-www/`로 이동하여 개발 및 커밋
+4. **통합 관리**: `/lastwar/`에서 전체 프로젝트 상태 확인
+
+## 프로젝트 아키텍처
+
+### 백엔드: lastwar-api (Spring Boot)
+- **데이터베이스**: PostgreSQL with 멀티테넌트 격리
+- **아키텍처**: JPA/QueryDSL, REST API, JWT 인증
+- **보안**: 모든 쿼리에 `server_alliance_id` 필터링 필수
+
+### 프론트엔드: lastwar-www (Next.js)
+- **기술 스택**: Next.js 14+ App Router, TypeScript, Tailwind CSS, ShadCN UI
+- **테스트**: MCP Puppeteer for E2E 테스트
+- **아키텍처**: React Server Components, 반응형 디자인
+
+## 백엔드 개발 워크플로우 (lastwar-api)
+
+### 1. 멀티테넌트 데이터 격리 (필수)
+모든 백엔드 작업 시 다음을 반드시 확인하세요:
+- [ ] 모든 쿼리에 `server_alliance_id` 필터링 확인
+- [ ] 교차 테넌트 데이터 접근 방지 테스트 작성
+- [ ] 데이터 격리 검증 테스트 실행
+- [ ] JWT에서 추출한 `getCurrentServerAllianceId()` 사용
+
+### 2. 데이터베이스 설계
+- [ ] JPA 어노테이션으로 엔터티 관계 설계
+- [ ] 감사 필드 포함 (created_at, updated_at, created_by)
+- [ ] PostgreSQL 인덱스 최적화 고려
+- [ ] 모든 테이블에 `server_alliance_id` 컬럼 포함
+
+### 3. 레포지토리 계층
+- [ ] 복잡한 연산을 위한 QueryDSL 쿼리 구현
+- [ ] `findByIdAndServerAllianceId()` 패턴 사용
+- [ ] 모든 쿼리에 멀티테넌트 필터링 보장
+- [ ] 페시미스틱 락 메서드에도 테넌트 격리 적용
+
+### 4. 서비스 계층 구현
+- [ ] 적절한 검증을 포함한 비즈니스 로직 구현
+- [ ] 트랜잭션 관리 추가 (@Transactional)
+- [ ] `JwtAuthUtils.getCurrentServerAllianceId()` 사용
+- [ ] 에러 처리 및 커스텀 예외 포함
+
+### 5. 컨트롤러 계층
+- [ ] 프로젝트 규칙을 따르는 REST 엔드포인트 생성
+- [ ] 적절한 요청/응답 DTO 추가
+- [ ] API 문서화를 위한 Swagger 어노테이션 포함
+
+### 6. 보안 및 검증
+- [ ] JWT 토큰 및 사용자 권한 검증
+- [ ] Bean Validation을 사용한 입력 검증 추가
+- [ ] 권한 체크 구현
+
+### 7. 테스트 요구사항
+- [ ] 서비스 계층 단위 테스트 (최소 80% 커버리지)
+- [ ] API 엔드포인트 통합 테스트
+- [ ] 멀티테넌트 격리 테스트 (필수)
+- [ ] 복잡한 쿼리에 대한 성능 테스트
+
+## 프론트엔드 개발 워크플로우 (lastwar-www)
+
+### 1. TypeScript 타입 안전성 (필수)
+- [ ] types/ 디렉토리에 적절한 TypeScript 인터페이스 정의
+- [ ] 모든 API 응답에 대한 엄격한 타입 체킹
+- [ ] 적절한 에러 타입 정의 추가
+- [ ] props 및 state 타입 검증
+
+### 2. 컴포넌트 아키텍처
+- [ ] 적절한 Next.js App Router 패턴 사용
+- [ ] 클라이언트/서버 컴포넌트 분리 구현
+- [ ] ShadCN UI 컴포넌트 패턴 준수
+- [ ] 반응형 디자인 보장 (모바일 우선)
+
+### 3. API 통합
+- [ ] 기존 api-service.ts 패턴을 사용한 API 호출 구현
+- [ ] 적절한 에러 처리 및 로딩 상태 추가
+- [ ] 적절한 인증 토큰 처리 보장
+- [ ] 응답 데이터 타입 검증
+
+### 4. 상태 관리
+- [ ] React 훅 (useState, useContext) 적절히 사용
+- [ ] 적절한 데이터 페칭 패턴 구현
+- [ ] 적절한 곳에 낙관적 업데이트 추가
+- [ ] 인증 상태 적절히 처리
+
+### 5. MCP Puppeteer 테스트
+- [ ] 주요 사용자 플로우에 대한 E2E 테스트 시나리오 생성
+- [ ] 다양한 뷰포트에서 반응형 디자인 테스트
+- [ ] 폼 제출 및 데이터 표시 검증
+- [ ] 인증 플로우 테스트
+
+## 풀스택 개발 워크플로우
+
+### Phase 1: 백엔드 우선 개발
+1. **데이터베이스 설계**: 멀티테넌트 격리를 고려한 스키마 설계
+2. **엔터티 및 레포지토리**: QueryDSL과 테넌트 필터링
+3. **서비스 계층**: 비즈니스 로직과 보안 검증
+4. **REST API**: 표준화된 엔드포인트와 문서화
+5. **백엔드 테스트**: 단위 테스트와 통합 테스트
+
+### Phase 2: 프론트엔드 통합
+1. **타입 정의**: API 응답에 대한 TypeScript 인터페이스
+2. **API 서비스**: 백엔드와의 통신 계층
+3. **컴포넌트 개발**: ShadCN UI 패턴 준수
+4. **상태 관리**: React 훅과 데이터 플로우
+5. **E2E 테스트**: MCP Puppeteer로 사용자 플로우 검증
+
+### Phase 3: 통합 및 품질 보증
+1. **풀스택 통합 테스트**: 엔드투엔드 데이터 플로우
+2. **성능 최적화**: 백엔드 쿼리와 프론트엔드 번들 최적화
+3. **보안 검증**: 멀티테넌트 격리 엔드투엔드 검증
+4. **문서화**: API 문서와 사용자 가이드
+
+## Git 워크플로우 규칙
+
+### 브랜치 전략
+- **main**: 운영 브랜치 (프로덕션 배포)
+- **feature/기능명**: 새로운 기능 개발
+- **fix/수정명**: 기존 기능 수정 및 버그 수정
+
+### 작업 시작 전 필수 단계
+- [ ] **브랜치 상태 확인**: `git status`, `git branch -a` 실행
+- [ ] **main 브랜치 최신화**: `git checkout main && git pull origin main`
+- [ ] **적절한 브랜치 생성**:
+  - 새 기능: `git checkout -b feature/기능명`
+  - 수정 작업: `git checkout -b fix/수정명`
+- [ ] **브랜치 생성 확인**: `git branch`로 현재 브랜치 확인
+
+### 개발 진행 중 커밋 규칙
+- [ ] **의미있는 단위로 커밋 분할**
+- [ ] **한글 커밋 메시지 작성**:
+  ```bash
+  git commit -m "사용자 목록 API 엔드포인트 구현
+  
+  - User 엔터티에 server_alliance_id 필터링 추가
+  - 페이징 및 정렬 기능 포함
+  - 멀티테넌트 데이터 격리 검증 완료"
+  ```
+- [ ] **정기적 중간 푸시**: `git push origin 브랜치명`
+
+### 작업 완료 후 필수 단계
+- [ ] **최종 테스트 실행 및 통과 확인**
+- [ ] **코드 정리 및 불필요한 파일 제거**
+- [ ] **최종 커밋 및 푸시**
+- [ ] **Pull Request 생성 및 상세 내용 작성**
+- [ ] **코드 리뷰 및 승인 대기**
+- [ ] **main 브랜치 머지 완료**
+
+## 품질 게이트
+
+### 백엔드 품질 게이트
+- [ ] 멀티테넌트 데이터 격리 검증 완료
+- [ ] 모든 쿼리가 server_alliance_id 필터링 사용
+- [ ] 테스트 커버리지 80% 이상
+- [ ] API 문서 업데이트 완료
+- [ ] 성능 벤치마크 통과
+- [ ] 보안 검증 완료
+
+### 프론트엔드 품질 게이트
+- [ ] TypeScript strict 모드 준수
+- [ ] 모든 API 응답 적절히 타입화
+- [ ] 반응형 디자인 테스트 완료 (모바일/태블릿/데스크톱)
+- [ ] 접근성 표준 충족 (WCAG 2.1 AA)
+- [ ] MCP Puppeteer E2E 테스트 통과
+- [ ] 성능 벤치마크 유지
+
+### 풀스택 품질 게이트
+- [ ] 멀티테넌트 데이터 격리 엔드투엔드 검증
+- [ ] 완전한 데이터 플로우 테스트 통과
+- [ ] 보안 검증 완료 (인증, 권한, 데이터 격리)
+- [ ] 성능 최적화 완료
+- [ ] 문서화 업데이트 완료
+
+## 중요 참고사항
+
+### 작업 위치 준수 (필수)
+- **루트 레벨 (`/lastwar/`)**: Task Master, Claude 설정만. 코드 변경 시 Git 관리 안함
+- **백엔드 코드**: 반드시 `/lastwar-api/` 디렉토리로 이동하여 작업
+- **프론트엔드 코드**: 반드시 `/lastwar-www/` 디렉토리로 이동하여 작업
+- **Git 커밋**: 각 프로젝트 디렉토리에서만 수행
+
+### 멀티테넌트 보안
+- **필수**: 모든 데이터베이스 쿼리에 `server_alliance_id` 필터링
+- **필수**: JWT에서 추출한 테넌트 ID만 사용
+- **필수**: 교차 테넌트 접근 방지 테스트
+
+### 개발 우선순위
+1. **보안**: 멀티테넌트 격리 최우선
+2. **안정성**: 테스트 커버리지와 에러 처리
+3. **성능**: 쿼리 최적화와 번들 크기
+4. **사용자 경험**: 반응형 디자인과 접근성
+
+### Claude Code 사용 팁
+- **작업 위치 엄수**: 백엔드는 `/lastwar-api/`, 프론트엔드는 `/lastwar-www/`에서만 코딩
+- **루트 레벨 용도**: Task Master 계획 수립과 전체 프로젝트 관리만
+- 멀티테넌트 격리는 모든 작업에서 자동 확인
+- Git 워크플로우 규칙을 자동으로 적용
+- 한글 커밋 메시지와 PR 템플릿 사용
+- 각 프로젝트에서 개별적으로 Git 관리
 
 ---
 
-_This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
+_이 가이드는 Claude Code가 LastWar 프로젝트의 개발 워크플로우를 자동으로 적용하기 위한 통합 규칙입니다._
