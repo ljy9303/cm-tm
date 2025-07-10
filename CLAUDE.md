@@ -2,6 +2,45 @@
 
 Task Master 규칙을 Claude Code에 통합하여 자동으로 적용되는 개발 가이드라인입니다.
 
+## 🚨 필수 작업 시작 전 자동 실행 규칙
+
+**⚠️ 모든 개발 작업은 반드시 아래 Git 워크플로우를 자동으로 시작해야 합니다:**
+
+### 📋 자동 실행 체크리스트 (사용자 요청 없이도 필수)
+
+#### **1단계: 상황 파악 (자동)**
+- [ ] `git status` - 현재 로컬 상태 확인
+- [ ] `git branch -a` - 모든 브랜치 확인  
+- [ ] `mcp__github__list_commits` - 최신 원격 커밋 확인
+- [ ] `mcp__github__list_pull_requests` - 기존 PR 상태 확인
+
+#### **2단계: 브랜치 전략 (자동)**
+- [ ] 작업 유형 판단: 새 기능(`feature/`) vs 버그 수정(`fix/`)
+- [ ] `mcp__github__create_branch` - 원격 브랜치 생성
+- [ ] `git checkout -b 브랜치명` - 로컬 브랜치 전환
+- [ ] `git pull origin 브랜치명` - 원격과 동기화
+
+#### **3단계: 개발 및 커밋 (자동)**
+- [ ] 멀티테넌트 격리 적용 확인
+- [ ] 테스트 자동 실행
+- [ ] 한글 커밋 메시지로 커밋
+- [ ] `git push origin 브랜치명` - 원격 푸시
+
+#### **4단계: PR 생성 (자동)**
+- [ ] `mcp__github__create_pull_request` - PR 자동 생성
+- [ ] PR 테스트 워크플로우 자동 실행
+- [ ] 테스트 통과 확인
+
+### 🔥 **긴급 수정 시나리오**
+사용자가 "프론트서버 유저관리 페이지에서 멀티테넌트가 적용되지 않는 버그 수정"이라고 하면:
+1. **즉시 `fix/frontend-multitenant-user-management` 브랜치 자동 생성**
+2. **프론트엔드 디렉토리로 자동 이동**
+3. **멀티테넌트 격리 코드 자동 수정**
+4. **테스트 자동 실행**
+5. **PR 자동 생성**
+
+⚠️ **이 모든 과정은 사용자가 Git 워크플로우를 명시적으로 요청하지 않아도 자동 실행됩니다.**
+
 ## 프로젝트 구조 및 작업 방식
 
 ### 디렉토리 구조
@@ -32,11 +71,30 @@ Task Master 규칙을 Claude Code에 통합하여 자동으로 적용되는 개�
   - UI/UX 구현
   - **Git 관리**: 프론트엔드 코드 변경사항
 
-### 작업 플로우
-1. **계획 단계**: `/lastwar/`에서 Task Master로 작업 계획
-2. **백엔드 구현**: `/lastwar-api/`로 이동하여 개발 및 커밋
-3. **프론트엔드 구현**: `/lastwar-www/`로 이동하여 개발 및 커밋
-4. **통합 관리**: `/lastwar/`에서 전체 프로젝트 상태 확인
+### 🔄 자동 작업 플로우 (GitHub MCP 우선)
+
+#### **모든 개발 작업 시 자동 실행 단계**
+1. **자동 Git 워크플로우 시작**:
+   - GitHub MCP로 원격 상태 확인
+   - 적절한 브랜치 자동 생성
+   - 로컬 브랜치 전환 및 동기화
+
+2. **계획 단계**: `/lastwar/`에서 Task Master로 작업 계획
+
+3. **백엔드 구현**: `/lastwar-api/`로 이동하여 개발
+   - 멀티테넌트 격리 자동 적용
+   - 테스트 자동 실행
+   - GitHub MCP로 자동 커밋 및 푸시
+
+4. **프론트엔드 구현**: `/lastwar-www/`로 이동하여 개발
+   - JWT 토큰 자동 포함 확인
+   - E2E 테스트 자동 실행
+   - GitHub MCP로 자동 커밋 및 푸시
+
+5. **자동 PR 생성 및 완료**:
+   - GitHub MCP로 PR 자동 생성
+   - 테스트 워크플로우 자동 실행
+   - 코드 리뷰 후 자동 머지
 
 ## 프로젝트 아키텍처
 
@@ -147,40 +205,90 @@ Task Master 규칙을 Claude Code에 통합하여 자동으로 적용되는 개�
 3. **보안 검증**: 멀티테넌트 격리 엔드투엔드 검증
 4. **문서화**: API 문서와 사용자 가이드
 
-## Git 워크플로우 규칙
+## Git 워크플로우 규칙 (GitHub MCP 우선)
 
 ### 브랜치 전략
 - **main**: 운영 브랜치 (프로덕션 배포)
 - **feature/기능명**: 새로운 기능 개발
 - **fix/수정명**: 기존 기능 수정 및 버그 수정
 
-### 작업 시작 전 필수 단계
-- [ ] **브랜치 상태 확인**: `git status`, `git branch -a` 실행
-- [ ] **main 브랜치 최신화**: `git checkout main && git pull origin main`
-- [ ] **적절한 브랜치 생성**:
-  - 새 기능: `git checkout -b feature/기능명`
-  - 수정 작업: `git checkout -b fix/수정명`
-- [ ] **브랜치 생성 확인**: `git branch`로 현재 브랜치 확인
+### 🔄 자동 작업 시작 전 필수 단계 (GitHub MCP 우선)
 
-### 개발 진행 중 커밋 규칙
-- [ ] **의미있는 단위로 커밋 분할**
-- [ ] **한글 커밋 메시지 작성**:
-  ```bash
-  git commit -m "사용자 목록 API 엔드포인트 구현
-  
-  - User 엔터티에 server_alliance_id 필터링 추가
-  - 페이징 및 정렬 기능 포함
-  - 멀티테넌트 데이터 격리 검증 완료"
-  ```
-- [ ] **정기적 중간 푸시**: `git push origin 브랜치명`
+#### **1단계: GitHub MCP로 원격 상태 확인**
+```bash
+# 현재 브랜치와 원격 상태 확인 (GitHub MCP 우선)
+mcp__github__list_commits     # 최신 커밋 확인
+mcp__github__list_pull_requests # 기존 PR 상태 확인
+git status                    # 로컬 변경사항 확인
+git branch -a                # 모든 브랜치 상태 확인
+```
 
-### 작업 완료 후 필수 단계
-- [ ] **최종 테스트 실행 및 통과 확인**
-- [ ] **코드 정리 및 불필요한 파일 제거**
-- [ ] **최종 커밋 및 푸시**
-- [ ] **Pull Request 생성 및 상세 내용 작성**
-- [ ] **코드 리뷰 및 승인 대기**
-- [ ] **main 브랜치 머지 완료**
+#### **2단계: GitHub MCP로 브랜치 생성**
+```bash
+# 새 기능 개발 시
+mcp__github__create_branch --branch="feature/기능명" --from_branch="main"
+
+# 버그 수정 시  
+mcp__github__create_branch --branch="fix/수정명" --from_branch="main"
+
+# 로컬에서 새 브랜치로 전환
+git checkout -b feature/기능명  # 또는 fix/수정명
+git pull origin feature/기능명  # 원격 브랜치와 동기화
+```
+
+### 🔄 개발 진행 중 커밋 규칙 (GitHub MCP 우선)
+
+#### **로컬 커밋 후 GitHub MCP 푸시**
+```bash
+# 1. 로컬 커밋 (한글 메시지)
+git add -A
+git commit -m "사용자 목록 API 엔드포인트 구현
+
+- User 엔터티에 server_alliance_id 필터링 추가
+- 페이징 및 정렬 기능 포함
+- 멀티테넌트 데이터 격리 검증 완료"
+
+# 2. GitHub MCP로 파일 업데이트 (선택사항 - 특정 파일만)
+mcp__github__create_or_update_file --path="파일경로" --content="내용" --message="커밋메시지"
+
+# 3. 일반 푸시
+git push origin 브랜치명
+```
+
+### 🔄 작업 완료 후 필수 단계 (GitHub MCP 우선)
+
+#### **자동 PR 생성 워크플로우**
+```bash
+# 1. 최종 테스트 실행 및 통과 확인
+npm run test  # 또는 ./gradlew test
+
+# 2. 최종 커밋 및 푸시
+git add -A
+git commit -m "최종 구현 완료"
+git push origin 브랜치명
+
+# 3. GitHub MCP로 자동 PR 생성
+mcp__github__create_pull_request --title="기능명" --head="브랜치명" --base="main" --body="PR설명"
+
+# 4. PR 상태 확인
+mcp__github__get_pull_request --pull_number="PR번호"
+```
+
+### 🚨 **중요: GitHub MCP vs Git 명령어 우선순위**
+
+#### **GitHub MCP 우선 사용 (권장)**
+- `mcp__github__create_branch` ✅
+- `mcp__github__create_pull_request` ✅  
+- `mcp__github__list_commits` ✅
+- `mcp__github__get_file_contents` ✅
+- `mcp__github__push_files` ✅
+
+#### **Git 명령어 사용 (필요시에만)**
+- `git status` (로컬 상태 확인용)
+- `git add`, `git commit` (로컬 커밋용)
+- `git checkout -b` (로컬 브랜치 전환용)
+
+⚠️ **모든 원격 Git 작업은 GitHub MCP를 우선적으로 사용하세요!**
 
 ## 품질 게이트
 
@@ -209,16 +317,28 @@ Task Master 규칙을 Claude Code에 통합하여 자동으로 적용되는 개�
 
 ## 중요 참고사항
 
+### 🚨 **자동 워크플로우 실행 (필수)**
+- **모든 개발 작업 시 GitHub MCP 기반 Git 워크플로우 자동 실행**
+- **사용자가 명시하지 않아도 브랜치 생성과 PR 자동 처리**
+- **GitHub MCP 우선 사용으로 원격 저장소와 자동 동기화**
+
 ### 작업 위치 준수 (필수)
 - **루트 레벨 (`/lastwar/`)**: Task Master, Claude 설정만. 코드 변경 시 Git 관리 안함
 - **백엔드 코드**: 반드시 `/lastwar-api/` 디렉토리로 이동하여 작업
 - **프론트엔드 코드**: 반드시 `/lastwar-www/` 디렉토리로 이동하여 작업
-- **Git 커밋**: 각 프로젝트 디렉토리에서만 수행
+- **Git 커밋**: GitHub MCP 우선, 필요시 각 프로젝트 디렉토리에서 수행
 
-### 멀티테넌트 보안
+### GitHub MCP 우선 사용 (필수)
+- **브랜치 생성**: `mcp__github__create_branch` 우선 사용
+- **PR 생성**: `mcp__github__create_pull_request` 자동 실행
+- **파일 업로드**: `mcp__github__push_files` 또는 `mcp__github__create_or_update_file`
+- **상태 확인**: `mcp__github__list_commits`, `mcp__github__get_pull_request`
+
+### 멀티테넌트 보안 (자동 적용)
 - **필수**: 모든 데이터베이스 쿼리에 `server_alliance_id` 필터링
 - **필수**: JWT에서 추출한 테넌트 ID만 사용
 - **필수**: 교차 테넌트 접근 방지 테스트
+- **자동**: 개발 시 멀티테넌트 격리 검증 자동 실행
 
 ### 개발 우선순위
 1. **보안**: 멀티테넌트 격리 최우선
@@ -227,12 +347,12 @@ Task Master 규칙을 Claude Code에 통합하여 자동으로 적용되는 개�
 4. **사용자 경험**: 반응형 디자인과 접근성
 
 ### Claude Code 사용 팁
+- **GitHub MCP 자동 사용**: 모든 Git 작업에서 MCP 우선
+- **자동 브랜치 관리**: 작업 시작 시 적절한 브랜치 자동 생성
 - **작업 위치 엄수**: 백엔드는 `/lastwar-api/`, 프론트엔드는 `/lastwar-www/`에서만 코딩
 - **루트 레벨 용도**: Task Master 계획 수립과 전체 프로젝트 관리만
-- 멀티테넌트 격리는 모든 작업에서 자동 확인
-- Git 워크플로우 규칙을 자동으로 적용
-- 한글 커밋 메시지와 PR 템플릿 사용
-- 각 프로젝트에서 개별적으로 Git 관리
+- **자동 품질 확인**: 멀티테넌트 격리, 테스트, 커밋 메시지 자동 검증
+- **자동 PR 생성**: 작업 완료 시 GitHub MCP로 PR 자동 생성
 
 ## GitHub MCP 통합 워크플로우
 
